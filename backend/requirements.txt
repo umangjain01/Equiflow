@@ -8,3 +8,4 @@ pydantic
 python-multipart==0.0.9
 pybind11
 email-validator==2.2.0
+psycopg2-binary==2.9.9
