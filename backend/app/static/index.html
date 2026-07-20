@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EquiFlow - Group Expense & Trip Optimization</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --card-bg: rgba(18, 26, 43, 0.75);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-primary: #6366f1;
+            --accent-cyan: #38bdf8;
+            --accent-emerald: #10b981;
+            --accent-coral: #f43f5e;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --font-heading: 'Outfit', sans-serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.12) 0px, transparent 50%);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            line-height: 1.5;
+            padding-bottom: 60px;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+            padding: 24px;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(99, 102, 241, 0.35);
+        }
+
+        /* Header / Navbar */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 40px;
+            border-bottom: 1px solid var(--card-border);
+            background: rgba(9, 13, 22, 0.85);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #a5b4fc, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            cursor: pointer;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-cyan));
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            color: white;
+            font-weight: 900;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+            -webkit-text-fill-color: initial;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .currency-picker {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+        }
+
+        .user-pill {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            color: var(--text-main);
+        }
+
+        .btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-family: var(--font-body);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary), #4f46e5);
+            border: none;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #4f46e5, #4338ca);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            border-radius: 6px;
+        }
+
+        .btn-danger {
+            background: rgba(244, 63, 94, 0.15);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            color: var(--accent-coral);
+        }
+
+        .btn-danger:hover {
+            background: rgba(244, 63, 94, 0.3);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 24px;
+        }
+
+        .auth-banner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(56, 189, 248, 0.08));
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 14px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+        }
+
+        .auth-banner-text {
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+
+        /* Trip Grid */
+        .trip-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .trip-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .trip-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-primary);
+            box-shadow: 0 12px 30px rgba(99, 102, 241, 0.25);
+        }
+
+        .trip-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .trip-icon { font-size: 2rem; }
+
+        .trip-title {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .trip-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            min-height: 38px;
+        }
+
+        .trip-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 12px;
+        }
+
+        .trip-members-badge {
+            background: rgba(255, 255, 255, 0.06);
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-weight: 600;
+            color: var(--accent-cyan);
+        }
+
+        /* Detail View Grid Layout */
+        .grid-3-col {
+            display: grid;
+            grid-template-columns: 320px 1fr 340px;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .grid-3-col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 1.2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Form Controls */
+        .form-group { margin-bottom: 14px; }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        input, select {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: var(--text-main);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus { border-color: var(--accent-primary); }
+
+        .balance-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+            max-height: 380px;
+            overflow-y: auto;
+        }
+
+        .balance-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--accent-primary);
+            display: grid;
+            place-items: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .amount-tag {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 0.9rem;
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+
+        .amount-credit { color: var(--accent-emerald); background: rgba(16, 185, 129, 0.12); }
+        .amount-debit { color: var(--accent-coral); background: rgba(244, 63, 94, 0.12); }
+        .amount-zero { color: var(--text-muted); background: rgba(255, 255, 255, 0.05); }
+
+        .participant-checkboxes {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 8px;
+            margin-top: 8px;
+            padding: 10px;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            max-height: 140px;
+            overflow-y: auto;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-transform: none;
+            color: var(--text-main);
+            margin-bottom: 0;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent-primary);
+            cursor: pointer;
+        }
+
+        .transaction-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(56, 189, 248, 0.04));
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .expense-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .expense-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .expense-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+
+        .expense-sub {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tx-flow {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .tx-arrow { color: var(--accent-cyan); font-size: 1.1rem; }
+        .tx-amount { font-family: var(--font-heading); font-size: 1rem; font-weight: 800; color: var(--accent-cyan); }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(9, 13, 22, 0.85);
+            backdrop-filter: blur(8px);
+            display: none;
+            place-items: center;
+            z-index: 1000;
+        }
+
+        .modal-body {
+            width: 100%;
+            max-width: 420px;
+            background: #111827;
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .tab-btn.active {
+            color: var(--accent-primary);
+            border-bottom: 2px solid var(--accent-primary);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px; right: 24px;
+            padding: 12px 18px;
+            background: rgba(18, 26, 43, 0.95);
+            border: 1px solid var(--accent-primary);
+            border-radius: 10px;
+            color: var(--text-main);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: none;
+            z-index: 2000;
+        }
+
+        .chart-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .bar-group { display: flex; flex-direction: column; gap: 4px; }
+        .bar-label { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; }
+        .bar-track { height: 8px; background: rgba(255,255,255,0.06); border-radius: 9999px; overflow: hidden; }
+        .bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent-primary), var(--accent-cyan)); border-radius: 9999px; transition: width 0.6s ease; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand" onclick="showView('home')">
+            <div class="brand-icon">E</div>
+            <span>EquiFlow</span>
+        </div>
+
+        <div class="nav-actions">
+            <div class="currency-picker">
+                <span style="color: var(--text-muted); font-size: 0.75rem; font-weight: 600;">CURRENCY:</span>
+                <select id="currencySelect" onchange="changeCurrency(this.value)" style="width: auto; padding: 2px 6px; font-size: 0.8rem; background: transparent; border: none; font-weight: 700; color: var(--accent-cyan);">
+                    <option value="₹">₹ Rupee (INR)</option>
+                    <option value="$">$ Dollar (USD)</option>
+                    <option value="€">€ Euro (EUR)</option>
+                </select>
+            </div>
+
+            <div id="userInfo" class="user-pill" style="display: none;">
+                <span id="userDisplayEmail">user@example.com</span>
+                <button class="btn btn-sm btn-danger" onclick="logout()">Logout</button>
+            </div>
+            <button id="authBtn" class="btn btn-primary" onclick="openAuthModal()">
+                Sign In / Register
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Auth Banner if not signed in -->
+        <div id="authBanner" class="auth-banner">
+            <div class="auth-banner-text">
+                🔒 <strong>Sign In Required:</strong> You must be signed in to open trip details, add friends, split expenses, or calculate cash flow settlements.
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="openAuthModal()">Sign In Now</button>
+        </div>
+
+        <!-- VIEW 1: TRIPS DASHBOARD HOME -->
+        <div id="tripsHomeView">
+            <div class="section-header">
+                <div>
+                    <h1 style="font-family: var(--font-heading); font-size: 2rem; font-weight: 800;">Your Trips & Groups</h1>
+                    <p style="color: var(--text-muted); font-size: 0.95rem;">Select a trip to add expenses, manage friends, and calculate debt optimizations.</p>
+                </div>
+                <button class="btn btn-primary" onclick="handleNewTripClick()">+ Create New Trip</button>
+            </div>
+
+            <div class="trip-grid" id="tripGrid">
+                <!-- Dynamically rendered trip cards or Welcome Screen -->
+            </div>
+        </div>
+
+        <!-- VIEW 2: TRIP DETAIL VIEW -->
+        <div id="tripDetailView" style="display: none;">
+            <div style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
+                <button class="btn btn-sm" onclick="showView('home')">← Back to All Trips</button>
+                <div style="text-align: right;">
+                    <h2 id="activeTripTitle" style="font-family: var(--font-heading); font-size: 1.6rem; font-weight: 800;">Trip Title</h2>
+                    <p id="activeTripDesc" style="color: var(--text-muted); font-size: 0.85rem;">Trip description...</p>
+                </div>
+            </div>
+
+            <div class="grid-3-col">
+                <!-- Friends & Members Panel -->
+                <div class="glass-card">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <svg width="18" height="18" fill="none" stroke="var(--accent-primary)" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                            Trip Friends
+                        </h2>
+                    </div>
+
+                    <form onsubmit="handleAddFriend(event)" style="margin-bottom: 16px;">
+                        <div class="form-group" style="display: flex; gap: 8px; margin-bottom: 0;">
+                            <input type="text" id="friendNameInput" placeholder="Friend's Name (e.g. Sam)" required>
+                            <button type="submit" class="btn btn-primary" style="white-space: nowrap;">+ Add</button>
+                        </div>
+                    </form>
+
+                    <div class="section-header" style="margin-bottom: 8px;">
+                        <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Members & Net Owed</span>
+                    </div>
+
+                    <div class="balance-list" id="friendsList"></div>
+                </div>
+
+                <!-- Record Expense Panel -->
+                <div class="glass-card">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <svg width="18" height="18" fill="none" stroke="var(--accent-cyan)" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                            Add Expense
+                        </h2>
+                    </div>
+
+                    <form id="expenseForm" onsubmit="handleAddExpense(event)">
+                        <div class="form-group">
+                            <label>Description</label>
+                            <input type="text" id="expenseDesc" placeholder="e.g. Resort Booking" required>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="form-group">
+                                <label id="amountLabel">Amount (₹)</label>
+                                <input type="number" step="0.01" id="expenseAmount" placeholder="1500.00" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Category</label>
+                                <select id="expenseCategory">
+                                    <option value="Food">Food & Dining</option>
+                                    <option value="Travel">Travel & Flight</option>
+                                    <option value="Utilities">Utilities & Rent</option>
+                                    <option value="Entertainment">Entertainment</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Who Paid?</label>
+                            <select id="expensePayer"></select>
+                        </div>
+
+                        <div class="form-group">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <label style="margin-bottom: 0;">Split Among Friends</label>
+                                <button type="button" class="btn btn-sm" onclick="selectAllParticipants()" style="padding: 2px 6px; font-size: 0.75rem;">Select All</button>
+                            </div>
+                            <div class="participant-checkboxes" id="participantCheckboxes"></div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 6px;">
+                            Divide Expense & Settle Up
+                        </button>
+                    </form>
+                </div>
+
+                <!-- C++ Engine Settlement Panel -->
+                <div class="glass-card">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <svg width="18" height="18" fill="none" stroke="var(--accent-emerald)" stroke-width="2" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                            Settle Up Engine
+                        </h2>
+                        <button class="btn btn-sm btn-primary" onclick="runSettleUp()">Calculate</button>
+                    </div>
+
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 16px;">
+                        Optimized settlements generated by the C++ Max-Heap solver:
+                    </p>
+
+                    <div id="transactionsContainer"></div>
+                </div>
+            </div>
+
+            <!-- Expense Log & Analytics -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="glass-card">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <svg width="18" height="18" fill="none" stroke="var(--accent-coral)" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                            Expense Log & Delete
+                        </h2>
+                    </div>
+                    <div id="expenseLogContainer" style="max-height: 240px; overflow-y: auto;"></div>
+                </div>
+
+                <div class="glass-card">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <svg width="18" height="18" fill="none" stroke="var(--accent-primary)" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                            Spending Analytics
+                        </h2>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <h4 style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Category Breakdown</h4>
+                            <div class="chart-container" id="categoryChart"></div>
+                        </div>
+                        <div>
+                            <h4 style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Month-over-Month</h4>
+                            <div class="chart-container" id="momChart"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Sign In / Register -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-body">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 id="modalTitle" style="font-family: var(--font-heading); font-size: 1.2rem;">Account Access Required</h3>
+                <button class="btn btn-sm" onclick="closeAuthModal()" style="padding: 2px 8px;">✕</button>
+            </div>
+
+            <div class="tab-buttons">
+                <button class="tab-btn active" id="tabLogin" onclick="switchAuthTab('login')">Sign In</button>
+                <button class="tab-btn" id="tabRegister" onclick="switchAuthTab('register')">Register</button>
+            </div>
+
+            <form id="authForm" onsubmit="handleAuthSubmit(event)">
+                <div class="form-group" id="usernameGroup" style="display: none;">
+                    <label>Username</label>
+                    <input type="text" id="authUsername" placeholder="johndoe">
+                </div>
+
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="authEmail" placeholder="user@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="authPassword" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;" id="authSubmitBtn">
+                    Sign In
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Create New Trip -->
+    <div class="modal-overlay" id="newTripModal">
+        <div class="modal-body">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="font-family: var(--font-heading); font-size: 1.2rem;">Create New Trip</h3>
+                <button class="btn btn-sm" onclick="closeNewTripModal()" style="padding: 2px 8px;">✕</button>
+            </div>
+
+            <form onsubmit="handleCreateTripSubmit(event)">
+                <div class="form-group">
+                    <label>Trip Title</label>
+                    <input type="text" id="newTripName" placeholder="e.g. Goa Trip 🏖️" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="newTripDesc" placeholder="e.g. Villa rent, food & beach sports" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;">
+                    Create Trip
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let currentAuthMode = "login";
+        let nextExpenseId = 1000;
+        let activeCurrency = "₹";
+
+        let trips = [
+            {
+                id: 1,
+                icon: "🏖️",
+                name: "Goa Road Trip",
+                description: "Beach house rent, car rental, and seafood dinners.",
+                friends: [
+                    { id: 1, name: "Alice", balance: 1800.0 },
+                    { id: 2, name: "Bob", balance: -900.0 },
+                    { id: 3, name: "Charlie", balance: -900.0 }
+                ],
+                expenses: [
+                    { id: 1, desc: "Seafood Dinner", amount: 2700.0, category: "Food", payerId: 1, participantIds: [1, 2, 3] }
+                ],
+                categoryTotals: { "Food": 2700.0 },
+                momTotals: { "2026-07": 2700.0 }
+            },
+            {
+                id: 2,
+                icon: "✈️",
+                name: "Europe Summer 2026",
+                description: "Interrail train passes, hostels in Paris and Amsterdam.",
+                friends: [
+                    { id: 1, name: "David", balance: 3600.0 },
+                    { id: 2, name: "Emma", balance: -1800.0 },
+                    { id: 3, name: "Frank", balance: -1800.0 }
+                ],
+                expenses: [
+                    { id: 10, desc: "Train Passes", amount: 5400.0, category: "Travel", payerId: 1, participantIds: [1, 2, 3] }
+                ],
+                categoryTotals: { "Travel": 5400.0 },
+                momTotals: { "2026-07": 5400.0 }
+            }
+        ];
+
+        let activeTripId = null;
+
+        // Currency formatting helper
+        function formatMoney(amount) {
+            return `${activeCurrency}${Math.abs(amount).toFixed(2)}`;
+        }
+
+        function changeCurrency(newCurrency) {
+            activeCurrency = newCurrency;
+            document.getElementById("amountLabel").textContent = `Amount (${activeCurrency})`;
+            renderTripsGrid();
+            if (activeTripId) {
+                renderFriendsList();
+                renderExpenseLog();
+                renderAnalytics();
+                runSettleUp();
+            }
+            showToast(`Currency set to ${activeCurrency}`);
+        }
+
+        function showView(view) {
+            if (view === "home") {
+                document.getElementById("tripsHomeView").style.display = "block";
+                document.getElementById("tripDetailView").style.display = "none";
+                activeTripId = null;
+                renderTripsGrid();
+            }
+        }
+
+        function openTrip(tripId) {
+            const token = localStorage.getItem("equiflow_token");
+            if (!token) {
+                openAuthModal("Sign in or register to open trip details, manage friends, add expenses, and calculate settlements!");
+                return;
+            }
+
+            const trip = trips.find(t => t.id === tripId);
+            if (!trip) return;
+
+            activeTripId = tripId;
+            document.getElementById("activeTripTitle").textContent = `${trip.icon} ${trip.name}`;
+            document.getElementById("activeTripDesc").textContent = trip.description;
+
+            document.getElementById("tripsHomeView").style.display = "none";
+            document.getElementById("tripDetailView").style.display = "block";
+
+            renderFriendsList();
+            renderExpenseLog();
+            renderAnalytics();
+            runSettleUp();
+        }
+
+        function handleNewTripClick() {
+            const token = localStorage.getItem("equiflow_token");
+            if (!token) {
+                openAuthModal("Sign in or register to create a new trip!");
+                return;
+            }
+            document.getElementById("newTripModal").style.display = "grid";
+        }
+
+        function closeNewTripModal() {
+            document.getElementById("newTripModal").style.display = "none";
+        }
+
+        function handleCreateTripSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById("newTripName").value.trim();
+            const desc = document.getElementById("newTripDesc").value.trim();
+            if (!name) return;
+
+            const newTrip = {
+                id: trips.length + 1,
+                icon: "🌴",
+                name: name,
+                description: desc,
+                friends: [
+                    { id: 1, name: "Me", balance: 0.0 }
+                ],
+                expenses: [],
+                categoryTotals: {},
+                momTotals: {}
+            };
+
+            trips.push(newTrip);
+            closeNewTripModal();
+            showToast(`Created trip "${name}"!`);
+            openTrip(newTrip.id);
+        }
+
+        function createSampleTrip(name, desc) {
+            const token = localStorage.getItem("equiflow_token");
+            if (!token) {
+                openAuthModal("Sign in or register to create a trip!");
+                return;
+            }
+
+            const newTrip = {
+                id: trips.length + 1,
+                icon: name.split(" ")[0],
+                name: name,
+                description: desc,
+                friends: [
+                    { id: 1, name: "Alice", balance: 0.0 },
+                    { id: 2, name: "Bob", balance: 0.0 }
+                ],
+                expenses: [],
+                categoryTotals: {},
+                momTotals: {}
+            };
+
+            trips.push(newTrip);
+            showToast(`Created "${name}"!`);
+            openTrip(newTrip.id);
+        }
+
+        function deleteTrip(e, tripId) {
+            e.stopPropagation();
+            if (!confirm("Are you sure you want to delete this trip?")) return;
+
+            trips = trips.filter(t => t.id !== tripId);
+            renderTripsGrid();
+            showToast("Trip deleted.");
+        }
+
+        function deleteFriend(friendId) {
+            const trip = trips.find(t => t.id === activeTripId);
+            if (!trip) return;
+
+            trip.friends = trip.friends.filter(f => f.id !== friendId);
+            renderFriendsList();
+            runSettleUp();
+            showToast("Friend removed.");
+        }
+
+        function renderTripsGrid() {
+            const container = document.getElementById("tripGrid");
+            container.innerHTML = "";
+
+            if (trips.length === 0) {
+                container.innerHTML = `
+                    <div class="glass-card" style="grid-column: 1 / -1; text-align: center; padding: 60px 24px; margin-top: 10px;">
+                        <div style="font-size: 3.5rem; margin-bottom: 16px;">✈️ 🌴 🏠</div>
+                        <h2 style="font-family: var(--font-heading); font-size: 2.2rem; font-weight: 800; margin-bottom: 12px; background: linear-gradient(135deg, #ffffff, #a5b4fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                            Welcome to EquiFlow!
+                        </h2>
+                        <p style="color: var(--text-muted); font-size: 1.05rem; max-width: 520px; margin: 0 auto 28px auto;">
+                            You don't have any active trips or expense groups yet. Create your first trip to start adding friends, recording shared costs, and calculating debt settlements!
+                        </p>
+                        <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 24px;">
+                            <button class="btn btn-primary" style="padding: 12px 28px; font-size: 1rem;" onclick="handleNewTripClick()">
+                                + Create Your First Trip
+                            </button>
+                        </div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">Or quick start with a template:</div>
+                        <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn btn-sm" onclick="createSampleTrip('🏖️ Goa Beach Trip', 'Villa rent & seafood dinners')">+ 🏖️ Goa Trip</button>
+                            <button class="btn btn-sm" onclick="createSampleTrip('✈️ Europe Summer 2026', 'Paris hostels & Interrail passes')">+ ✈️ Europe Trip</button>
+                            <button class="btn btn-sm" onclick="createSampleTrip('🏠 Flat Rent & Bills', 'Groceries & monthly apartment bills')">+ 🏠 Flat Bills</button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            trips.forEach(t => {
+                const card = document.createElement("div");
+                card.className = "trip-card";
+                card.onclick = () => openTrip(t.id);
+
+                const totalSpend = Object.values(t.categoryTotals).reduce((a, b) => a + b, 0);
+
+                card.innerHTML = `
+                    <div>
+                        <div class="trip-card-header">
+                            <div class="trip-icon">${t.icon}</div>
+                            <button class="btn btn-sm btn-danger" onclick="deleteTrip(event, ${t.id})">🗑️ Delete</button>
+                        </div>
+                        <div class="trip-title">${t.name}</div>
+                        <div class="trip-desc">${t.description}</div>
+                    </div>
+                    <div class="trip-footer">
+                        <span>${formatMoney(totalSpend)} Total Spend</span>
+                        <div class="trip-members-badge">${t.friends.length} Members</div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderFriendsList() {
+            const trip = trips.find(t => t.id === activeTripId);
+            if (!trip) return;
+
+            const container = document.getElementById("friendsList");
+            const payerSelect = document.getElementById("expensePayer");
+            const checkboxes = document.getElementById("participantCheckboxes");
+
+            container.innerHTML = "";
+            payerSelect.innerHTML = "";
+            checkboxes.innerHTML = "";
+
+            trip.friends.forEach(f => {
+                const item = document.createElement("div");
+                item.className = "balance-item";
+
+                let amtClass = "amount-zero";
+                let formattedAmt = formatMoney(0);
+                if (f.balance > 0.001) {
+                    amtClass = "amount-credit";
+                    formattedAmt = `+${formatMoney(f.balance)}`;
+                } else if (f.balance < -0.001) {
+                    amtClass = "amount-debit";
+                    formattedAmt = `-${formatMoney(f.balance)}`;
+                }
+
+                item.innerHTML = `
+                    <div class="user-name">
+                        <div class="user-avatar">${f.name[0].toUpperCase()}</div>
+                        <span>${f.name}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div class="amount-tag ${amtClass}">${formattedAmt}</div>
+                        <button class="btn btn-sm btn-danger" style="padding: 2px 6px;" onclick="deleteFriend(${f.id})">✕</button>
+                    </div>
+                `;
+                container.appendChild(item);
+
+                const opt = document.createElement("option");
+                opt.value = f.id;
+                opt.textContent = f.name;
+                payerSelect.appendChild(opt);
+
+                const cbLabel = document.createElement("label");
+                cbLabel.className = "checkbox-label";
+                cbLabel.innerHTML = `
+                    <input type="checkbox" value="${f.id}" class="participant-cb" checked>
+                    <span>${f.name}</span>
+                `;
+                checkboxes.appendChild(cbLabel);
+            });
+        }
+
+        function handleAddFriend(e) {
+            e.preventDefault();
+            const input = document.getElementById("friendNameInput");
+            const name = input.value.trim();
+            if (!name || !activeTripId) return;
+
+            const trip = trips.find(t => t.id === activeTripId);
+            if (!trip) return;
+
+            const newId = trip.friends.length + 1;
+            trip.friends.push({ id: newId, name: name, balance: 0.0 });
+
+            input.value = "";
+            renderFriendsList();
+            showToast(`Added "${name}" to ${trip.name}!`);
+        }
+
+        function selectAllParticipants() {
+            document.querySelectorAll(".participant-cb").forEach(cb => cb.checked = true);
+        }
+
+        function handleAddExpense(e) {
+            e.preventDefault();
+            const trip = trips.find(t => t.id === activeTripId);
+            if (!trip) return;
+
+            const desc = document.getElementById("expenseDesc").value.trim();
+            const amount = parseFloat(document.getElementById("expenseAmount").value);
+            const category = document.getElementById("expenseCategory").value;
+            const payerId = parseInt(document.getElementById("expensePayer").value);
+
+            const selectedCbs = Array.from(document.querySelectorAll(".participant-cb:checked"));
+            const participantIds = selectedCbs.map(cb => parseInt(cb.value));
+
+            if (!amount || amount <= 0) {
+                showToast("Please enter a valid expense amount!");
+                return;
+            }
+            if (participantIds.length === 0) {
+                showToast("Please select at least one friend to share the expense!");
+                return;
+            }
+
+            const splitPerPerson = amount / participantIds.length;
+
+            const payerObj = trip.friends.find(f => f.id === payerId);
+            if (payerObj) payerObj.balance += amount;
+
+            participantIds.forEach(pid => {
+                const fObj = trip.friends.find(f => f.id === pid);
+                if (fObj) fObj.balance -= splitPerPerson;
+            });
+
+            const newExp = {
+                id: nextExpenseId++,
+                desc: desc,
+                amount: amount,
+                category: category,
+                payerId: payerId,
+                participantIds: participantIds
+            };
+            if (!trip.expenses) trip.expenses = [];
+            trip.expenses.push(newExp);
+
+            trip.categoryTotals[category] = (trip.categoryTotals[category] || 0) + amount;
+            trip.momTotals["2026-07"] = (trip.momTotals["2026-07"] || 0) + amount;
+
+            renderFriendsList();
+            renderExpenseLog();
+            renderAnalytics();
+            document.getElementById("expenseForm").reset();
+            selectAllParticipants();
+
+            showToast(`Added & split ${formatMoney(amount)} for "${desc}"!`);
+            runSettleUp();
+        }
+
+        function deleteExpense(expId) {
+            const trip = trips.find(t => t.id === activeTripId);
+            if (!trip || !trip.expenses) return;
+
+            const expIndex = trip.expenses.findIndex(e => e.id === expId);
+            if (expIndex === -1) return;
+
+            const exp = trip.expenses[expIndex];
+            const splitPerPerson = exp.amount / exp.participantIds.length;
+
+            const payerObj = trip.friends.find(f => f.id === exp.payerId);
+            if (payerObj) payerObj.balance -= exp.amount;
+
+            exp.participantIds.forEach(pid => {
+                const fObj = trip.friends.find(f => f.id === pid);
+                if (fObj) fObj.balance += splitPerPerson;
+            });
+
+            if (trip.categoryTotals[exp.category]) {
+                trip.categoryTotals[exp.category] = Math.max(0, trip.categoryTotals[exp.category] - exp.amount);
+            }
+
+            trip.expenses.splice(expIndex, 1);
+
+            renderFriendsList();
+            renderExpenseLog();
+            renderAnalytics();
+            runSettleUp();
+            showToast(`Deleted expense "${exp.desc}".`);
+        }
+
+        function renderExpenseLog() {
+            const trip = trips.find(t => t.id === activeTripId);
+            const container = document.getElementById("expenseLogContainer");
+            if (!trip || !container) return;
+
+            if (!trip.expenses || trip.expenses.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--text-muted); font-size: 0.85rem;">No recorded expenses in this trip yet.</div>`;
+                return;
+            }
+
+            container.innerHTML = "";
+            trip.expenses.forEach(exp => {
+                const payerName = trip.friends.find(f => f.id === exp.payerId)?.name || "Unknown";
+                const item = document.createElement("div");
+                item.className = "expense-item";
+                item.innerHTML = `
+                    <div class="expense-info">
+                        <div class="expense-title">${exp.desc}</div>
+                        <div class="expense-sub">${formatMoney(exp.amount)} • Paid by ${payerName} • ${exp.category}</div>
+                    </div>
+                    <button class="btn btn-sm btn-danger" onclick="deleteExpense(${exp.id})">🗑️ Delete</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        async function runSettleUp() {
+            const trip = trips.find(t => t.id === activeTripId);
+            if (!trip) return;
+
+            const container = document.getElementById("transactionsContainer");
+            container.innerHTML = `<div style="text-align:center; padding: 16px; color: var(--accent-cyan);">Calculating C++ Settlements...</div>`;
+
+            const payload = {};
+            trip.friends.forEach(f => {
+                payload[f.id] = f.balance;
+            });
+
+            try {
+                const res = await fetch("/demo/settle-up", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 24px; color: var(--accent-emerald); font-weight: 600;">
+                            ✨ All debts are fully settled!
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = "";
+                data.forEach(tx => {
+                    const fromFriend = trip.friends.find(f => f.id === tx.from_user_id)?.name || `User #${tx.from_user_id}`;
+                    const toFriend = trip.friends.find(f => f.id === tx.to_user_id)?.name || `User #${tx.to_user_id}`;
+
+                    const card = document.createElement("div");
+                    card.className = "transaction-card";
+                    card.innerHTML = `
+                        <div class="tx-flow">
+                            <span>${fromFriend}</span>
+                            <span class="tx-arrow">➔</span>
+                            <span>${toFriend}</span>
+                        </div>
+                        <div class="tx-amount">${formatMoney(tx.amount)}</div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = `<div style="color: var(--accent-coral); font-size: 0.85rem;">Failed to calculate settlements.</div>`;
+            }
+        }
+
+        function renderAnalytics() {
+            const trip = trips.find(t => t.id === activeTripId);
+            if (!trip) return;
+
+            const catContainer = document.getElementById("categoryChart");
+            catContainer.innerHTML = "";
+            const maxCat = Math.max(...Object.values(trip.categoryTotals), 1);
+
+            Object.entries(trip.categoryTotals).forEach(([cat, val]) => {
+                const pct = (val / maxCat) * 100;
+                catContainer.innerHTML += `
+                    <div class="bar-group">
+                        <div class="bar-label">
+                            <span>${cat}</span>
+                            <span>${formatMoney(val)}</span>
+                        </div>
+                        <div class="bar-track">
+                            <div class="bar-fill" style="width: ${pct}%;"></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            const momContainer = document.getElementById("momChart");
+            momContainer.innerHTML = "";
+            const maxMom = Math.max(...Object.values(trip.momTotals), 1);
+
+            Object.entries(trip.momTotals).forEach(([month, val]) => {
+                const pct = (val / maxMom) * 100;
+                momContainer.innerHTML += `
+                    <div class="bar-group">
+                        <div class="bar-label">
+                            <span>${month}</span>
+                            <span>${formatMoney(val)}</span>
+                        </div>
+                        <div class="bar-track">
+                            <div class="bar-fill" style="width: ${pct}%; background: linear-gradient(90deg, #38bdf8, #34d399);"></div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Authentication & Modals
+        function openAuthModal(msg) {
+            document.getElementById("authEmail").value = "";
+            document.getElementById("authPassword").value = "";
+            document.getElementById("authUsername").value = "";
+            document.getElementById("authModal").style.display = "grid";
+            if (msg) showToast(msg);
+        }
+
+        function closeAuthModal() {
+            document.getElementById("authModal").style.display = "none";
+        }
+
+        function switchAuthTab(mode) {
+            currentAuthMode = mode;
+            document.getElementById("tabLogin").classList.toggle("active", mode === "login");
+            document.getElementById("tabRegister").classList.toggle("active", mode === "register");
+            document.getElementById("usernameGroup").style.display = mode === "register" ? "block" : "none";
+            document.getElementById("authSubmitBtn").textContent = mode === "register" ? "Create Account" : "Sign In";
+            document.getElementById("authEmail").value = "";
+            document.getElementById("authPassword").value = "";
+            document.getElementById("authUsername").value = "";
+        }
+
+        async function handleAuthSubmit(e) {
+            e.preventDefault();
+            const email = document.getElementById("authEmail").value.trim();
+            const password = document.getElementById("authPassword").value;
+            const usernameInput = document.getElementById("authUsername").value.trim();
+
+            if (!email || !password) {
+                showToast("Please enter both email and password.");
+                return;
+            }
+
+            const endpoint = currentAuthMode === "register" ? "/register" : "/login";
+            const payload = currentAuthMode === "register" 
+                ? { username: usernameInput || undefined, email, password }
+                : { username: email, password };
+
+            try {
+                const res = await fetch(endpoint, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    let errMsg = "Authentication failed.";
+                    if (typeof data.detail === "string") {
+                        errMsg = data.detail;
+                    } else if (Array.isArray(data.detail)) {
+                        errMsg = data.detail.map(err => err.msg || err.detail).join(", ");
+                    }
+                    showToast(errMsg);
+                    return;
+                }
+
+                if (currentAuthMode === "register") {
+                    showToast("Account created! Signing you in...");
+                    const loginRes = await fetch("/login", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ username: email, password: password })
+                    });
+                    const loginData = await loginRes.json();
+                    if (loginRes.ok) {
+                        localStorage.setItem("equiflow_token", loginData.access_token);
+                        localStorage.setItem("equiflow_user_email", email);
+                        checkAuthState();
+                        closeAuthModal();
+                        showToast(`Welcome! Signed in as ${email}`);
+                    } else {
+                        switchAuthTab("login");
+                    }
+                } else {
+                    localStorage.setItem("equiflow_token", data.access_token);
+                    localStorage.setItem("equiflow_user_email", email);
+                    checkAuthState();
+                    closeAuthModal();
+                    showToast(`Signed in as ${email}`);
+                }
+            } catch (err) {
+                console.error(err);
+                showToast("Authentication network error.");
+            }
+        }
+
+        function checkAuthState() {
+            const token = localStorage.getItem("equiflow_token");
+            const email = localStorage.getItem("equiflow_user_email");
+
+            if (token && email) {
+                document.getElementById("userInfo").style.display = "flex";
+                document.getElementById("userDisplayEmail").textContent = email;
+                document.getElementById("authBtn").style.display = "none";
+                document.getElementById("authBanner").style.display = "none";
+            } else {
+                document.getElementById("userInfo").style.display = "none";
+                document.getElementById("authBtn").style.display = "inline-flex";
+                document.getElementById("authBanner").style.display = "flex";
+                showView("home");
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("equiflow_token");
+            localStorage.removeItem("equiflow_user_email");
+            checkAuthState();
+            showToast("Logged out successfully.");
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById("toast");
+            toast.innerText = msg;
+            toast.style.display = "block";
+            setTimeout(() => { toast.style.display = "none"; }, 3000);
+        }
+
+        // Initialize on load
+        checkAuthState();
+        renderTripsGrid();
+    </script>
+</body>
+</html>
